@@ -484,152 +484,169 @@ console.log(selectionSort(testArr2));
   *                                                                                *
   **********************************************************************************/
 
-// listNode
-var listNode = function(value){
-  this.value = value;
-  this.next = null;
-}
+  /**********************************************************************************
+    *                                 Homework IV                                    *
+    *                                                                                *
+    *  Problem: Linked List                                                          *
+    *                                                                                *
+    *  Prompt: Create a Linked List class/constructor.                               *
+    *          Name it LinkedList (js) or Linked_List(rb/py).                        *
+    *                                                                                *
+    *          Part 1: Create a node class for your LinkedList.                      *
+    *                  Your node class will take an integer value and output         *
+    *                  and output and object with the following properties:          *
+    *                                                                                *
+    *                  node.value: input value                                       *
+    *                  node.next: a pointer to the next value (initiall null)        *
+    *                                                                                *
+    *                  Example: { value: 1, next: null }                             *
+    *                                                                                *
+    *          Part 2: Create the LinkedList class.                                  *
+    *                  It should contain the following properties:                   *
+    *                                                                                *
+    *                  head: pointer to the head node                                *
+    *                  tail: pointer to the tail node                                *
+    *                  length: number of nodes in the linked list                    *
+    *                                                                                *
+    *                  The LinkedList should also contain the following properties   *
+    *                                                                                *
+    *                  append: function that adds a node to the tail                 *
+    *                                                                                *
+    *                  insert: function that takes in two values, one to be inserted *
+    *                          and one to search.  It searches the list for the      *
+    *                          search value, and if found, adds a new node with the  *
+    *                          insert value after the node with the search value.   *
+    *                                                                                *
+    *                  delete: function that removes a node at a specified location, *
+    *                          with a default action of deleting the head            *
+    *                                                                                *
+    *                  contains: function that checks to see if a value is contained *
+    *                            in the list                                         *
+    *                                                                                *
+    *  Input:  N/A                                                                   *
+    *  Output: A LinkedList instance                                                 *
+    *                                                                                *
+    *  What are the time and auxilliary space complexities of the various methods?   *
+    *                                                                                *
+    **********************************************************************************/
 
-// linkedList
-var linkedList = function(){
-  this.head = null;
-  this.tail = null;
-  this.len = 0;
-}
+  var Node = function(value) {
+    this.value = value;
+    this.next = null;
+  }
 
-linkedList.prototype.append = function(value) {
-  var node = new listNode(value),
-    currentNode = this.head;
-  // 1st use-case: an empty list
-  if (!currentNode) {
-    this.head = node;
+  var LinkedList = function() {
+    this.head = null;
+    this.tail = null;
+    this.len = 0;
+  }
+
+  LinkedList.prototype.append = function(value) {
+    var nodeToAppend = new Node(value),
+        current = this.head;
+    // in the event that the linkedlist is empty
+    if (!current) {
+      this.head = nodeToAppend;
+      this.len++;
+
+      return nodeToAppend;
+    }
+
+    //in the event that the linkedlist is NOT empty traverse to last node
+    while (current.next) {
+      current = current.next;
+    }
+    current.next = nodeToAppend;
     this.len++;
 
-    return node;
+    return nodeToAppend;
+
   }
 
-  //2nd use-case: a non-empty list
-  // while loop occurs until we reach the end of our linked list
-  while (currentNode.next) {
-    currentNode = currentNode.next;
-  }
-  // then we assign currentNode.next to the node we're handling & increm len++
-  currentNode.next = node;
-  this.len++;
+  LinkedList.prototype.insert = function(valToInsert, valToSearch) {
+    var current = this.head;
 
-  return node;
-}
+    //find valToSearch
+    while (current.value !== valToSearch && current.next !== null) {
+      current = current.next;
+    }
+    //disconnect other node from it
+    temp = current.next;
 
-//searches for node at position n
-//position expected to be an integer and indicates a node at n-position in our list (i think starting with 0. or 1?)
-linkedList.prototype.searchNodeAt = function(position) {
-  var currentNode = this.head,
-  len = this.len,
-  count = 1,
-  message = {failure: "Failure: non-existent node in this list"};
+    //insert valToInsert to the pointer from valToSearch
+    current.next = new Node(valToInsert);
 
-  //1st use-case: an invalid position
-  if (len === 0 || position < 1 || position > len) {
-    throw new Error(message.failure);
+    //attach pointer from valToInsert to the node that was initially attached to valToSearch
+    valToInsert.next = temp;
+    this.len++;
+
+    return current;
+
   }
 
-  //2nd use-case: a valid position
-  //During each iteration of the while loop,
-  //currentNode, which points to head, is reassigned to the
-  // next node of the list
-  //Iteration goes on until count == position
-  while (count < position) {
-    currentNode = currentNode.next;
-    count++;
+  LinkedList.prototype.del = function(location) {
+    if (location === 0 && this.head !== null && this.head === this.tail){
+      // case when linkedList consists of a single element
+      this.head = null;
+      this.tail = null;
+      this.len--;
+      return;
+    } else if (location === 0 && this.head !== null && this.head.next !== null){
+      // case when linkedList has more than one element, but
+      // zeroth element is being removed
+      this.head = this.head.next;
+      this.len--;
+      return;
+    }
+
+    var work = this.head;
+    var counter = 0;
+    while (work !== null){
+      if (counter === (location-1) && work.next !== null && work.next === this.tail){
+        // case when removing the last element of linkedList
+        work.next = work.next.next;
+        this.tail = work;
+        this.len--;
+        return;
+      } else if (counter === (location-1) && work.next !== null){
+        // case when removing values that are not the head or tail
+        work.next = work.next.next;
+        this.len--;
+        return;
+      }
+      counter++;
+      work = work.next
+    }
+    console.log('Error: Index ' + "'" + location + "'" + ' falls out of the range of the length of the linkedList');
+
   }
 
-  //when loop breaks, currentNode returned is
-  return currentNode;
-}
+  LinkedList.prototype.contains = function(valueToSearch) {
+    var result = false,
+        current = this.head;
 
-//valueInsert is value to insert, valueSearch is the value before the value you're inserting
-linkedList.prototype.insert = function(valueInsert, valueSearch) {
-  var currentNode = this.head,
-    len = this.len,
-    count = 0,
-    message = {failure: "Failure: the value you're searching for does NOT exist"};
+    // if list is empty, return false
+    if (!current) {
+      return false;
+    }
 
-  //1st use-case: if the valueSearch isn't in linkedList
-  while (count > ???) {
-    throw new Error(message.failure);
-  }
-
-  //2nd use-case: if valueSearch IS in linkedList
-  //find valueSearch with a while loop
-    //disconnect valueSearch.next from next node & reconnect to valueInsert
-    //connect valueInsert to node that was initially after valueSearch
-
-  //return 'the value bla bla was inserted'. maybe at length position x, after blah node
-}
-
-linkedList.prototype.del = function(position) {
-  var currentNode = this.head,
-    len = this.len,
-    count = 0,
-    message = {failure: "Failure: non-existent node in this list"},
-    beforeNodeToDelete = null,
-    nodeToDelete = null,
-    deletedNode = null;
-
-  //1st use-case: an invalid position
-  if (position < 0 || position > len) {
-    throw new Error(message.failure);
-  }
-
-  //2nd use-case: the first node is removed
-  if (position === 1) {
-    this.head = currentNode.next;
-    // we have deletednode so we can return it to the user
-    // current node, where the node is stored, equals null! i get it
-    deletedNode = currentNode;
-    currentNode = null;
-    this.len--;
-
-    return deletedNode;
-  }
-
-  //3rd use-case: any other node is removed
-  // we get the beforeNodeToDelete and nodeToDelete
-  while (count < position) {
-    beforeNodeToDelete = currentNode;
-    nodetoDelete = currentNode.next;
-    count++;
-  }
-  // Then, we delete the connection between the beforeNodetoDelete and nodeToDelete
-  // We reconnect the beforeNodeToDelete to the node AFTER the one we're deleting
-  beforeNodeToDelete.next = nodeToDelete.next;
-  //Then we set deletedNode to nodeToDelete to return it
-  deletedNode = nodeToDelete;
-  //and then we set nodeToDelete to null!
-  nodeToDelete = null;
-  this.len--;
-
-  return deletedNode;
-}
-
-// checks linkedList to see if the value you're searching for is inside it
-//boolean output
-linkedList.prototype.contains = function(value) {
-  var currentNode = this.head,
-    len = this.len,
-    count = 0,
-    valueSearch = null;
-
-  while (count < len) {
-    if (currentNode === value) {
-      valueSearch = value;
+    // if head is equal to value to search, return true
+    if (current.value === valueToSearch) {
       return true;
     }
-    count++;
-  } else {
+
+    //traverse through list with while loop and check if current.value == nodeToSearch
+    while (current.next) {
+      current = current.next;
+      if (current.value === valueToSearch) {
+        return true;
+      }
+    }
+
     return false;
+
   }
-}
+
 //============
 //END DATASTRUCTURES_1.JS
 //============
