@@ -708,10 +708,9 @@ console.log(selectionSort(testArr2));
 
 
 var node = function(value){
-  this.value = value,
-  this.leftChild = null,
-  this.rightChild = null
-
+  this.value = value;
+  this.right = null;
+  this.left = null;
 }
 
 
@@ -720,205 +719,102 @@ var binarySearchTree = function(){
   this.size = 0;
 }
 
-//basically, add()
-binarySearchTree.prototype.insert(value) {
-  //create a new item object, place data in
-  var node = {
-    value: value,
-    leftChild: null
-    rightChild: null,
-  };
-
-  //used to traverse the structure
-  var current;
-
-  //special case: no items in the tree yet
-  if (this.root === null) {
-    this.root = node;
+binarySearchTree.prototype.insert = function(value){
+  if (this.root === null){
+    // when the tree is empty
+    this.root = new node(value);
+    this.size++;
   } else {
-    current = this.root;
-    while (true) {
-      //if the new value is less than this node's value, go left
-      if (value < current.value) {
-        //if there's no left, then the new node belongs there
-        if (current.left === null) {
-          current.left = node;
-          break;
+    // when stuff has already been inserted
+    var findAndInsert = function(currentNode){
+
+      if (value > currentNode.value){
+        if (currentNode.right === null){
+          currentNode.right = new node(value);
         } else {
-          current = current.left;
+          findAndInsert(currentNode.right);
         }
-      } else if (value > current.value) {
-        // if there's no right, then the new node belongs there
-        if (current.right === null) {
-          current.right = node;
-          break;
+      } else if (value < currentNode.value){
+        if (currentNode.left === null){
+          currentNode.left = new node(value);
         } else {
-          current = current.right;
+          findAndInsert(currentNode.left);
         }
-      //if the new value is equal to the current one, just ignore
-      } else {
-        break;
       }
     }
-  }
 
+    findAndInsert(this.root);
+
+    this.size++;
+
+  }
 }
 
-//basically, contains()
-binarySearchTree.prototype.search() {
-  var found = false,
-  current = this.root;
+binarySearchTree.prototype.search = function(target){
+  var check = false;
 
-  // make sure there is a node to search
-  while (!found && current) {
-
-    //if the value is less than the current node's, go left
-    if (value < current.value) {
-      current = current.left;
-    // if the  value is greater than the current node's go right
-    } else if (value > current.value) {
-      current = current.right;
-    } else {
-      found = true;
+  var traverse = function(currentNode){
+    if (check){
+      return;
+    } else if (currentNode === null){
+      return;
+    } else if (currentNode.value === target){
+      check = true;
+      return;
     }
 
+    if (target > currentNode.value){
+      traverse(currentNode.right);
+    } else if (target < currentNode.value){
+      traverse(currentNode.left);
+    }
   }
-  //return true if the node is found, or false if it isn't
-  return found;
+
+  traverse(this.root);
+  return check;
 }
 
-binarySearchTree.prototype.remove(value) {
-  var found = false,
-  parent = null,
-  current = this.root,
-  childCount,
-  replacement,
-  replacementParent;
+binarySearchTree.prototype.delete = function(deleteValue){
+  var temp = [];
 
-  while (!found && current) {
-
-    // if value is less than current node's, go left
-    if (value < current.value) {
-      parent = current;
-      current = current.left;
-    // if value is greater than current node's, go right
-    } else if (value > current.value) {
-      parent = current;
-      current = current.right
-    //values are equal, found it!
+  var roundUp = function(currentNode){
+    if (currentNode === null){
+      return;
     } else {
-      //remove the root and replace it with what?
-      found = true;
+      if (currentNode.value !== deleteValue){
+        temp.push(currentNode.value);
+      }
     }
+
+    roundUp(currentNode.right);
+    roundUp(currentNode.left);
   }
 
-  //only proceed if node was found
-  if (found) {
+  roundUp(this.root);
 
-    //figure out how many children
-    childCount = (current.leftChild !== null ? true : false) + (current.rightChild !== null ? true : false);
-
-    //special case: the value is at the root
-    if (current === this.root) {
-      switch(childCount) {
-
-        //no children, just erase the root
-        case 0:
-          this.root = null;
-          break;
-
-        //one child, use one as the root
-        case 1:
-          this.root = (current.rightRight === null? current.leftChild : current.rightChild);
-          break;
-
-        //two children, little work to do
-        case 2:
-
-        //new root will be the old root's left child...maybe
-        replacement = this.root.leftChild;
-
-        //find the right most leaf node to be the real new root
-        while (replacement.rightChild !== null) {
-          replacementParent = replacement;
-          replacement = replacement.rightChild;
-        }
-
-        //it's not the first node on the left
-        if (replacementParent !== null) {
-          //remove the new root from it's previous position
-          replacementParent.rightChild = replacement.leftChild;
-
-          //give the new root all of the old root's children
-          replacement.rightChild = this.root.rightChild;
-          replacement.leftChild = this.root.leftChild;
-
-        } else {
-          //just assign the children
-          replacement.rightChild = this.root.rightChild;
-        }
-        //officially assign new root
-        this.root = replacement;
-
-      //no default;
-
-
-      }
-    //non-root values
-    } else {
-
-      switch (childCount) {
-        //no children, just remove it from parent
-        case 0:
-          if (current.value < parent.value) {
-            parent.leftChild = null;
-          } else {
-            parent.rightChild = null;
-          }
-          break;
-
-        //one child, just reassign to parent
-        case 1:
-          //if the current value is less than its parent's, reset the left pointer
-          if (current.value < parent.value) {
-            parent.leftChild = (current.leftChild === null ? current.rightChild : current.leftChild);
-          } else {
-            parent.rightChild = (current.leftChild === null ? current.rightChild : current.leftChild);
-          }
-          break;
-
-        //two children, a bit more complicated
-        case 2:
-          //reset pointers for new traversal
-          replacement = current.leftChild;
-          replacementParent = current;
-
-        //find the right-most node
-        while (replacement.rightChild !== null) {
-          replacementParent = replacement;
-          replacement = replacement.rightChild;
-        }
-
-        replacementParent.rightChild = replacement.leftChild;
-
-        //assign children to the replacement
-        replacement.rightChild = current.rightChild;
-        replacement.leftChild = current.leftChild;
-
-        //place the replacement in the right spot
-        if (current.value < parent.value) {
-          parent.leftChild = replacement;
-        } else {
-          parent.rightChild = replacement;
-        }
-      //no default
-      }
-
-    }
+  if (temp.length === this.size){
+    console.log('deleteValue: ' + deleteValue + ' was not found in binary search tree');
+    return;
   }
 
+  // create temporary tree
+  var tempTree = new binarySearchTree();
 
-};
+  // iterate through all of the found values that weren't the target
+  // and insert them into the new tree
+  temp.forEach(function(value){
+    tempTree.insert(value);
+  })
+
+  // reinitialize the root as the tempTree root
+  this.root = tempTree.root;
+
+  // reduce size of tree
+  this.size--;
+
+  console.log(deleteValue + ' has been deleted from the tree');
+}
+
 //============
 //END DATASTRUCTURES_2.JS
 //============
